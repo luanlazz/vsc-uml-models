@@ -13,6 +13,7 @@ public class ClassDiagram implements Serializable {
     private ArrayList<ClassStructure> classes = new ArrayList<>();
     private ArrayList<ClassInstance> instances = new ArrayList<>();
     private ArrayList<EnumStructure> enumerations = new ArrayList<>();
+    private String diagramUmlId;
 
     public String getId() {
 		return id;
@@ -57,4 +58,12 @@ public class ClassDiagram implements Serializable {
     public void addEnumeration(EnumStructure enumeration) {
         this.enumerations.add(enumeration);
     }
+
+	public String getDiagramId() {
+		return diagramUmlId;
+	}
+
+	public void setDiagramId(String diagramUmlId) {
+		this.diagramUmlId = diagramUmlId;
+	}
 }

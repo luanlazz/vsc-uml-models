@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.ecore.xmi.XMLResource;
+import org.eclipse.uml2.uml.Model;
 import org.eclipse.uml2.uml.Package;
 import org.eclipse.uml2.uml.PackageableElement;
 
@@ -19,7 +21,6 @@ public class ClassDiagramReader implements Serializable {
     private static final long serialVersionUID = 1L;
 
     public static ClassDiagram getRefModelDetails(Package _package) throws Exception {
-
         ClassDiagram classDiagram = new ClassDiagram();
 
         PackageStructure packageStructure;
@@ -54,7 +55,9 @@ public class ClassDiagramReader implements Serializable {
         classDiagram.getEnumerations().addAll(enumStructure(packageStructure));
         classDiagram.getClasses().addAll(classes);
         classDiagram.getInstances().addAll(instances);
-
+        String modelId = ((XMLResource) _package.eResource()).getID(_package);
+        classDiagram.setDiagramId(modelId);
+        
         return classDiagram;
     }
 
