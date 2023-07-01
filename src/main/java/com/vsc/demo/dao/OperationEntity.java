@@ -1,5 +1,6 @@
 package com.vsc.demo.dao;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.annotations.OnDelete;
@@ -24,8 +25,8 @@ import jakarta.persistence.Table;
 @Table(name = "operation")
 public class OperationEntity {
 	@Id
-	@SequenceGenerator(name = "operation_id_sequence", sequenceName = "operation_id_sequence")
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "operation_id_sequence")
+	@GeneratedValue(generator = "operation_id_sequence", strategy = GenerationType.SEQUENCE)
+	@SequenceGenerator(name = "operation_id_sequence", sequenceName = "operation_id_sequence", allocationSize = 1)
 	@Column(name = "id_operation")
 	private Long id;
 	@Column(name = "id_uml")
@@ -44,23 +45,22 @@ public class OperationEntity {
 	private String visibility;
 	@Column(name = "is_class")
 	private String isClass;
-	@OneToMany(mappedBy = "operationEntity", cascade = CascadeType.ALL)
-	private List<OperationParameterEntity> parameterEntities;
-	
+	@OneToMany(mappedBy = "operation", cascade = CascadeType.ALL)
+	private List<OperationParameterEntity> parameters;
+
 	public OperationEntity() {
 	}
-	
-	public OperationEntity(Long id, String idUml, ClassEntity classEntity, Long idReturn, String name, Long idType,
+
+	public OperationEntity(String idUml, ClassEntity classEntity, Long idReturn, String name, Long idType,
 			String visibility, String isClass) {
-		super();
-		this.id = id;
 		this.idUml = idUml;
 		this.classEntity = classEntity;
 		this.idReturn = idReturn;
 		this.name = name;
-		IdType = idType;
+		this.IdType = idType;
 		this.visibility = visibility;
 		this.isClass = isClass;
+		this.parameters = new ArrayList<OperationParameterEntity>();
 	}
 
 	public Long getId() {
@@ -117,5 +117,9 @@ public class OperationEntity {
 
 	public void setIdReturn(Long idReturn) {
 		this.idReturn = idReturn;
+	}
+
+	public void addParameter(OperationParameterEntity parameter) {
+		this.parameters.add(parameter);
 	}
 }

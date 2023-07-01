@@ -1,5 +1,6 @@
 package com.vsc.demo.dao;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.annotations.OnDelete;
@@ -24,8 +25,8 @@ import jakarta.persistence.Table;
 @Table(name = "class")
 public class ClassEntity {
 	@Id
-	@SequenceGenerator(name = "class_id_sequence", sequenceName = "class_id_sequence")
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "class_id_sequence")
+	@GeneratedValue(generator = "class_id_sequence", strategy = GenerationType.SEQUENCE)
+	@SequenceGenerator(name = "class_id_sequence", sequenceName = "class_id_sequence", allocationSize = 1)
 	@Column(name = "id_class")
 	private Long id;
 	@Column(name = "id_uml")
@@ -45,15 +46,12 @@ public class ClassEntity {
 	public ClassEntity() {
 	}
 
-	public ClassEntity(Long id, String idUml, DiagramEntity diagramEntity, String name,
-			List<AttributeEntity> attributes, List<OperationEntity> operations) {
-		super();
-		this.id = id;
+	public ClassEntity(String idUml, DiagramEntity diagramEntity, String name) {
 		this.idUml = idUml;
 		this.diagramEntity = diagramEntity;
 		this.name = name;
-		this.attributes = attributes;
-		this.operations = operations;
+		this.attributes = new ArrayList<AttributeEntity>();
+		this.operations = new ArrayList<OperationEntity>();
 	}
 
 	public Long getId() {
@@ -86,5 +84,13 @@ public class ClassEntity {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public void addAttribute(AttributeEntity attribute) {
+		this.attributes.add(attribute);
+	}
+
+	public void addOperation(OperationEntity operation) {
+		this.operations.add(operation);
 	}
 }

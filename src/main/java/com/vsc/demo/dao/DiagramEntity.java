@@ -1,5 +1,6 @@
 package com.vsc.demo.dao;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -16,8 +17,8 @@ import jakarta.persistence.Table;
 @Table(name = "diagram")
 public class DiagramEntity {
 	@Id
-	@SequenceGenerator(name = "diagram_id_sequence", sequenceName = "diagram_id_sequence")
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "diagram_id_sequence")
+	@GeneratedValue(generator = "diagram_id_sequence", strategy = GenerationType.SEQUENCE)
+	@SequenceGenerator(name = "diagram_id_sequence", sequenceName = "diagram_id_sequence", allocationSize = 1)
 	@Column(name = "id_diagram")
 	private Long id;
 	@Column(name = "id_uml")
@@ -32,12 +33,11 @@ public class DiagramEntity {
 	public DiagramEntity() {
 	}
 
-	public DiagramEntity(Long id, String idUml, String name, String type) {
-		super();
-		this.id = id;
+	public DiagramEntity(String idUml, String name, String type) {
 		this.idUml = idUml;
 		this.name = name;
 		this.type = type;
+		this.classes = new ArrayList<ClassEntity>();
 	}
 
 	public Long getId() {
@@ -70,5 +70,9 @@ public class DiagramEntity {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	public void addClass(ClassEntity classEntity) {
+		this.classes.add(classEntity);
 	}
 }

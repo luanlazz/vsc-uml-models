@@ -20,8 +20,8 @@ import jakarta.persistence.Table;
 @Table(name = "op_parameter")
 public class OperationParameterEntity {
 	@Id
-	@SequenceGenerator(name = "op_parameter_id_sequence", sequenceName = "op_parameter_id_sequence")
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "op_parameter_id_sequence")
+	@GeneratedValue(generator = "op_parameter_id_sequence", strategy = GenerationType.SEQUENCE)
+	@SequenceGenerator(name = "op_parameter_id_sequence", sequenceName = "op_parameter_id_sequence", allocationSize = 1)
 	@Column(name = "id_parameter")
 	private Long id;
 	@Column(name = "id_uml")
@@ -30,23 +30,21 @@ public class OperationParameterEntity {
 	@JoinColumn(name = "id_operation", nullable = false)
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	@JsonIgnore
-	private OperationEntity operationEntity;
+	private OperationEntity operation;
 	@Column(name = "name")
 	private String name;
 	@Column(name = "id_type")
 	private Long IdType;
 	@Column(name = "value_default")
 	private String valueDefault;
-	
-	public OperationParameterEntity() {	
+
+	public OperationParameterEntity() {
 	}
-	
-	public OperationParameterEntity(Long id, String idUml, OperationEntity operationEntity, String name, Long idType,
+
+	public OperationParameterEntity(String idUml, OperationEntity operation, String name, Long idType,
 			String valueDefault) {
-		super();
-		this.id = id;
 		this.idUml = idUml;
-		this.operationEntity = operationEntity;
+		this.operation = operation;
 		this.name = name;
 		IdType = idType;
 		this.valueDefault = valueDefault;
@@ -69,11 +67,11 @@ public class OperationParameterEntity {
 	}
 
 	public OperationEntity getOperationEntity() {
-		return operationEntity;
+		return operation;
 	}
 
-	public void setOperationEntity(OperationEntity operationEntity) {
-		this.operationEntity = operationEntity;
+	public void setOperationEntity(OperationEntity operation) {
+		this.operation = operation;
 	}
 
 	public String getName() {

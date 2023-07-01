@@ -20,8 +20,8 @@ import jakarta.persistence.Table;
 @Table(name = "attribute")
 public class AttributeEntity {
 	@Id
-	@SequenceGenerator(name = "attribute_id_sequence", sequenceName = "attribute_id_sequence")
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "attribute_id_sequence")
+	@GeneratedValue(generator = "attribute_id_sequence", strategy = GenerationType.SEQUENCE)
+	@SequenceGenerator(name = "attribute_id_sequence", sequenceName = "attribute_id_sequence", allocationSize = 1)
 	@Column(name = "id_attribute")
 	private Long id;
 	@Column(name = "id_uml")
@@ -37,13 +37,11 @@ public class AttributeEntity {
 	private Long IdType;
 	@Column(name = "visibility")
 	private String visibility;
-	
+
 	public AttributeEntity() {
 	}
 
-	public AttributeEntity(Long id, String idUml, ClassEntity classEntity, String name, Long idType, String visibility) {
-		super();
-		this.id = id;
+	public AttributeEntity(String idUml, ClassEntity classEntity, String name, Long idType, String visibility) {
 		this.idUml = idUml;
 		this.classEntity = classEntity;
 		this.name = name;
