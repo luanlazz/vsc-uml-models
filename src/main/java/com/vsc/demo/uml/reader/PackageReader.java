@@ -12,13 +12,13 @@ import com.vsc.demo.uml.models._package.PackageStructure;
 
 public class PackageReader {
 
-    public static PackageStructure readPackage(EList<PackageableElement> packageableElements, String packageName, Package _package) {
+	public static PackageStructure readPackage(EList<PackageableElement> packageableElements, String packageName,
+			Package _package) {
 
         PackageStructure packageStructure = new PackageStructure();
         packageStructure.setName(packageName);
 
         for (PackageableElement element : packageableElements) {
-
             if (element.eClass() == UMLPackage.Literals.CLASS) {
                 ClassStructure classStructure = ClassStructureReader.readClass(element, packageName);
                 packageStructure.getClasses().add(classStructure);
@@ -41,12 +41,12 @@ public class PackageReader {
                             ? packageName + "." + _elPackage.getName()
                             : packageName;
                 }
-                PackageStructure nustedPackageStructure = readPackage(_elPackage.getPackagedElements(), newPackageName, _elPackage);
+				PackageStructure nustedPackageStructure = readPackage(_elPackage.getPackagedElements(), newPackageName,
+						_elPackage);
                 packageStructure.getPackages().add(nustedPackageStructure);
             }
         }
         return packageStructure;
     }
-
 
 }

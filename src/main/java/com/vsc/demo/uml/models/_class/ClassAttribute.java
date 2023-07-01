@@ -12,12 +12,12 @@ public class ClassAttribute {
     private boolean Static;
     private boolean isCollection;
 
-
     public ClassAttribute() {
 
     }
 
-    public ClassAttribute(String name, String type, Object value, boolean isClass, boolean isEnum, boolean isCollection) {
+	public ClassAttribute(String name, String type, Object value, boolean isClass, boolean isEnum,
+			boolean isCollection) {
         this.name = name;
         this.type = type;
         this.value = value;
@@ -25,7 +25,6 @@ public class ClassAttribute {
         this.isEnum = isEnum;
         this.isCollection = isCollection;
     }
-
 
     public String getId() {
 		return id;

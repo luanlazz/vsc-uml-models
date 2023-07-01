@@ -20,7 +20,7 @@ public class ClassStructure {
     private List<ClassOperation> operations = new ArrayList<>();
     private List<ClassRelation> relationships = new ArrayList<>();
 
-    public String getId() {
+	public String getId() {
 		return id;
 	}
 

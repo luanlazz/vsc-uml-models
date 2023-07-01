@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClassOperation {
+	
 	private String id;
     private String name;
     private OperationReturn returnType;

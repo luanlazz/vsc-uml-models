@@ -19,7 +19,6 @@ import org.eclipse.uml2.uml.Parameter;
 import org.eclipse.uml2.uml.ParameterDirectionKind;
 import org.eclipse.uml2.uml.Property;
 import org.eclipse.uml2.uml.Relationship;
-import org.eclipse.uml2.uml.Type;
 import org.eclipse.uml2.uml.UMLPackage;
 import org.eclipse.uml2.uml.internal.impl.ClassImpl;
 import org.eclipse.uml2.uml.internal.impl.DataTypeImpl;
@@ -41,33 +40,24 @@ public class ClassStructureReader {
 	public static ClassStructure readClass(Element element, String packageName) {
 		ClassStructure classStructure = new ClassStructure();
 
-		XMLResource xmlResourceElementClass = (XMLResource) element.eResource();
-		String idClass = xmlResourceElementClass.getID(element);
-
-		classStructure.setIdUml(idClass);
+		classStructure.setId(ReaderUtils.getXMLId(element));
 
 		Class _class = (Class) element;
 		List<String> rules = new ArrayList<>();
-		// System.out.println(_class.getName());
 
 		for (Constraint constraint : _class.getOwnedRules()) {
 			if (constraint.getSpecification() instanceof OpaqueExpressionImpl) {
 				OpaqueExpressionImpl expressionImpl = (OpaqueExpressionImpl) constraint.getSpecification();
 				rules.addAll(expressionImpl.getBodies());
 			}
-
 		}
 
 		for (Class superClass : _class.getSuperClasses()) {
-			XMLResource xmlResourceSC = (XMLResource) element.eResource();
-			String idSC = xmlResourceSC.getID(superClass);
-
 			ClassStructure superClassStructure = new ClassStructure();
-			superClassStructure.setIdUml(idSC);
+			superClassStructure.setId(ReaderUtils.getXMLId(superClass));
 			superClassStructure.setName(superClass.getName());
 			superClassStructure.setPackage(superClass.getPackage().getName());
 			classStructure.addSuperClass(superClassStructure);
-
 		}
 
 		// System.out.println("\n -------- \n");
@@ -83,7 +73,6 @@ public class ClassStructureReader {
 		classStructure.setRelationships(readClassRelations(_class.getRelationships()));
 
 		for (NamedElement inheritedElement : _class.getInheritedMembers()) {
-
 			if (inheritedElement instanceof Property) {
 				Property property = (Property) inheritedElement;
 				ClassAttribute attribute = readAttribute(property);
@@ -97,7 +86,6 @@ public class ClassStructureReader {
 					classStructure.addOperation(classOperation);
 				}
 			}
-
 		}
 
 		return classStructure;
@@ -111,7 +99,6 @@ public class ClassStructureReader {
 			} else if (relationship.eClass() == UMLPackage.Literals.GENERALIZATION) {
 				list.add(readGeneralization(relationship));
 			}
-
 		}
 		return list;
 	}
@@ -120,24 +107,18 @@ public class ClassStructureReader {
 		ArrayList<ClassOperation> operations = new ArrayList<>();
 		if (!ownedOperations.isEmpty()) {
 			for (Operation operation : ownedOperations) {
-
 				ClassOperation classOperation = readClassOperation(operation);
 				if (classOperation != null) {
 					operations.add(classOperation);
 				}
-
 			}
 		}
 		return operations;
 	}
 
 	public static ClassOperation readClassOperation(Operation operation) {
-
-		XMLResource xmlResourceOperation = (XMLResource) operation.eResource();
-		String id = xmlResourceOperation.getID(operation);
-
 		ClassOperation classOperation = new ClassOperation();
-		classOperation.setId(id);
+		classOperation.setId(ReaderUtils.getXMLId(operation));
 		classOperation.setName(operation.getName());
 		classOperation.setVisibility(operation.getVisibility().toString());
 		classOperation.setReturnType(new OperationReturn());// TODO return type
@@ -152,10 +133,7 @@ public class ClassStructureReader {
 					returnType = true;
 				}
 				OperationParameter operationParameter = new OperationParameter();
-				
-				XMLResource xmlResourceOpParameter = (XMLResource) parameter.eResource();
-				String idOpParameter = xmlResourceOpParameter.getID(parameter);
-				operationParameter.setId(idOpParameter);
+				operationParameter.setId(ReaderUtils.getXMLId(parameter));
 
 				if (parameter.getType() instanceof PrimitiveTypeImpl) {
 					PrimitiveTypeImpl primitiveType = (PrimitiveTypeImpl) (parameter.getType());
@@ -226,9 +204,7 @@ public class ClassStructureReader {
 							methodReturn.setCollection(true);
 						}
 						classOperation.setReturnType(methodReturn);
-
 					} else {
-
 						operationParameter.setName(parameter.getName());
 						operationParameter.setVisibility(parameter.getVisibility().toString());
 						operationParameter.setType(_class.getName());
@@ -254,7 +230,6 @@ public class ClassStructureReader {
 							methodReturn.setCollection(true);
 						}
 						classOperation.setReturnType(methodReturn);
-
 					} else {
 						operationParameter.setType(arrtibuteType);
 						operationParameter.setName(parameter.getName());
@@ -270,7 +245,6 @@ public class ClassStructureReader {
 							methodReturn.setCollection(true);
 						}
 						classOperation.setReturnType(methodReturn);
-
 					} else {
 						operationParameter.setName(parameter.getName());
 						operationParameter.setVisibility(parameter.getVisibility().toString());
@@ -288,7 +262,6 @@ public class ClassStructureReader {
 							methodReturn.setCollection(true);
 						}
 						classOperation.setReturnType(methodReturn);
-
 					} else {
 						operationParameter.setName(parameter.getName());
 						operationParameter.setVisibility(parameter.getVisibility().toString());
@@ -299,7 +272,6 @@ public class ClassStructureReader {
 						classOperation.getParameters().add(operationParameter);
 					}
 				}
-
 			}
 		}
 
@@ -320,12 +292,8 @@ public class ClassStructureReader {
 	}
 
 	public static ClassAttribute readAttribute(Property property) {
-
-		XMLResource xmlResourceAttribute = (XMLResource) property.eResource();
-		String id = xmlResourceAttribute.getID(property);
-
 		ClassAttribute attribute = new ClassAttribute();
-		attribute.setId(id);
+		attribute.setId(ReaderUtils.getXMLId(property));
 
 		if (property.getType() instanceof PrimitiveTypeImpl) {
 			attribute.setName(property.getName());

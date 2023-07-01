@@ -23,11 +23,11 @@ THE SOFTWARE.*/
 package com.vsc.demo.uml.models._class;
 
 public class OperationReturn {
+	
 	private String id;
-    private String type = "Void";
+	private String type = "void";
     private boolean Class;
     private boolean collection;
-
 
     public OperationReturn() {
 
