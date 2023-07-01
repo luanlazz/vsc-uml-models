@@ -5,14 +5,14 @@ import java.io.File;
 import org.eclipse.uml2.uml.Package;
 
 import com.vsc.demo.uml.loader.ModelLoader;
-import com.vsc.demo.uml.models._class.ClassDiagram;
-import com.vsc.demo.uml.reader.diagram.ClassDiagramReader;
+import com.vsc.demo.uml.models._class.UMLModel;
+import com.vsc.demo.uml.reader.diagram.UMLModelReader;
 
-public class ClassDiagramReaderService {
+public class UMLModelReaderService {
 
-	public static ClassDiagram classDiagramReader(String filePath) throws Exception {
+	public static UMLModel classDiagramReader(String filePath) throws Exception {
 		File model = new File(filePath);
-        Package aPackage = new ModelLoader().loadModel(model);
-        return ClassDiagramReader.getRefModelDetails(aPackage);
-    }
+		Package aPackage = new ModelLoader().loadModel(model);
+		return UMLModelReader.getRefModelDetails(aPackage);
+	}
 }

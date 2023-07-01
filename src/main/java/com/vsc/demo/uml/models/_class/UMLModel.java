@@ -5,15 +5,16 @@ import java.util.ArrayList;
 
 import com.vsc.demo.uml.models._enum.EnumStructure;
 
-public class ClassDiagram implements Serializable {
-	private String id;
-
+public class UMLModel implements Serializable {
+	
 	private static final long serialVersionUID = 1L;
-
+	
+	private String id;
+	private String name;
+	private String type = "model";
 	private ArrayList<ClassStructure> classes = new ArrayList<>();
 	private ArrayList<ClassInstance> instances = new ArrayList<>();
 	private ArrayList<EnumStructure> enumerations = new ArrayList<>();
-	private String diagramUmlId;
 
 	public String getId() {
 		return id;
@@ -21,6 +22,22 @@ public class ClassDiagram implements Serializable {
 
 	public void setId(String id) {
 		this.id = id;
+	}
+	
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
 	}
 
 	public ArrayList<ClassStructure> getClasses() {
@@ -57,13 +74,5 @@ public class ClassDiagram implements Serializable {
 
 	public void addEnumeration(EnumStructure enumeration) {
 		this.enumerations.add(enumeration);
-	}
-
-	public String getDiagramId() {
-		return diagramUmlId;
-	}
-
-	public void setDiagramId(String diagramUmlId) {
-		this.diagramUmlId = diagramUmlId;
 	}
 }

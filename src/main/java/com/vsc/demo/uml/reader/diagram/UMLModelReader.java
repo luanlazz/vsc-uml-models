@@ -5,111 +5,106 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.ecore.xmi.XMLResource;
-import org.eclipse.uml2.uml.Model;
 import org.eclipse.uml2.uml.Package;
 import org.eclipse.uml2.uml.PackageableElement;
 
-import com.vsc.demo.uml.models._class.ClassDiagram;
 import com.vsc.demo.uml.models._class.ClassInstance;
 import com.vsc.demo.uml.models._class.ClassStructure;
+import com.vsc.demo.uml.models._class.UMLModel;
 import com.vsc.demo.uml.models._enum.EnumStructure;
 import com.vsc.demo.uml.models._package.PackageStructure;
 import com.vsc.demo.uml.reader.PackageReader;
+import com.vsc.demo.uml.reader.ReaderUtils;
 
-public class ClassDiagramReader implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class UMLModelReader implements Serializable {
+	private static final long serialVersionUID = 1L;
 
-    public static ClassDiagram getRefModelDetails(Package _package) throws Exception {
-        ClassDiagram classDiagram = new ClassDiagram();
+	public static UMLModel getRefModelDetails(Package _package) throws Exception {
+		if (_package == null) {
+			throw new Exception("[Model] Package is null");
+		}
+	
+		EList<PackageableElement> packageableElements = _package.getPackagedElements();
+		String packageName = _package.getName() != null ? _package.getName() : "";
+		PackageStructure packageStructure = PackageReader.readPackage(packageableElements, packageName, _package);
 
-        PackageStructure packageStructure;
-        if (_package != null) {
-            EList<PackageableElement> packageableElements = _package.getPackagedElements();
-            String packageName = _package.getName() != null ? _package.getName() : "";
-            packageStructure = PackageReader.readPackage(packageableElements, packageName, _package);
-        } else {
-            throw new Exception("[ClassDiagram] Package is null");
-        }
+		ArrayList<ClassStructure> classes = classStructures(packageStructure);
+		for (ClassStructure cs : classes) {
+			List<ClassStructure> superClasses = new ArrayList<>();
+			for (ClassStructure superClass : cs.getSuperClasses()) {
+				ClassStructure superClassByName = getClassByName(classes, superClass.getName());
+				if (superClassByName != null) {
+					superClasses.add(superClassByName);
+				}
+			}
+			cs.setSuperClasses(superClasses);
+		}
 
-        ArrayList<ClassStructure> classes = classStructures(packageStructure);
-        for (ClassStructure cs : classes) {
-            List<ClassStructure> superClasses = new ArrayList<>();
-            for (ClassStructure superClass : cs.getSuperClasses()) {
-            	ClassStructure superClassByName = getClassByName(classes, superClass.getName());
-            	if (superClassByName != null) {
-            		superClasses.add(superClassByName);
-            	}
-            }
-            cs.setSuperClasses(superClasses);
-        }
-
-        ArrayList<ClassInstance> instances = classInstances(packageStructure);
-        for (ClassInstance classInstance : instances) {
-            for (ClassStructure classStructure : classInstance.getClasses()) {
+		ArrayList<ClassInstance> instances = classInstances(packageStructure);
+		for (ClassInstance classInstance : instances) {
+			for (ClassStructure classStructure : classInstance.getClasses()) {
 //                classes.get(classStructure.getName()).getInstances().add(classInstance);
-                getClassByName(classes, classStructure.getName()).getInstances().add(classInstance);
-            }
-        }
+				getClassByName(classes, classStructure.getName()).getInstances().add(classInstance);
+			}
+		}
 
-        classDiagram.getEnumerations().addAll(enumStructure(packageStructure));
-        classDiagram.getClasses().addAll(classes);
-        classDiagram.getInstances().addAll(instances);
-        String modelId = ((XMLResource) _package.eResource()).getID(_package);
-        classDiagram.setDiagramId(modelId);
-        
-        return classDiagram;
-    }
+		UMLModel umlModel = new UMLModel();
+		umlModel.setId(ReaderUtils.getXMLId(_package));
+		umlModel.setName(packageName);
+		umlModel.getEnumerations().addAll(enumStructure(packageStructure));
+		umlModel.getClasses().addAll(classes);
+		umlModel.getInstances().addAll(instances);
 
-    private static ArrayList<ClassInstance> classInstances(PackageStructure packageStructure) {
-    	ArrayList<ClassInstance> instances = new ArrayList<>();
+		return umlModel;
+	}
 
-        for (ClassInstance classInstance : packageStructure.getInstances()) {
-            instances.add(classInstance);
-        }
+	private static ArrayList<ClassInstance> classInstances(PackageStructure packageStructure) {
+		ArrayList<ClassInstance> instances = new ArrayList<>();
 
-        for (PackageStructure ps : packageStructure.getPackages()) {
-            instances.addAll(classInstances(ps));
-        }
-        return instances;
-    }
+		for (ClassInstance classInstance : packageStructure.getInstances()) {
+			instances.add(classInstance);
+		}
 
-    private static ArrayList<ClassStructure> classStructures(PackageStructure packageStructure) {
-    	ArrayList<ClassStructure> classes = new ArrayList<>();
+		for (PackageStructure ps : packageStructure.getPackages()) {
+			instances.addAll(classInstances(ps));
+		}
+		return instances;
+	}
 
-        for (ClassStructure classStructure : packageStructure.getClasses()) {
-            classes.add(classStructure);
-        }
+	private static ArrayList<ClassStructure> classStructures(PackageStructure packageStructure) {
+		ArrayList<ClassStructure> classes = new ArrayList<>();
 
-        for (PackageStructure ps : packageStructure.getPackages()) {
-            classes.addAll(classStructures(ps));
-        }
-        return classes;
-    }
+		for (ClassStructure classStructure : packageStructure.getClasses()) {
+			classes.add(classStructure);
+		}
 
-    private static ClassStructure getClassByName(ArrayList<ClassStructure> classes, String className) {
-        for (ClassStructure classStructure : classes) {
-            if (classStructure.getName().equals(className)) {
-            	return classStructure;
-            }
-        }
+		for (PackageStructure ps : packageStructure.getPackages()) {
+			classes.addAll(classStructures(ps));
+		}
+		return classes;
+	}
 
-        return null;
-    }
+	private static ClassStructure getClassByName(ArrayList<ClassStructure> classes, String className) {
+		for (ClassStructure classStructure : classes) {
+			if (classStructure.getName().equals(className)) {
+				return classStructure;
+			}
+		}
 
+		return null;
+	}
 
-    private static ArrayList<EnumStructure> enumStructure(PackageStructure packageStructure) {
-    	ArrayList<EnumStructure> enums = new ArrayList<>();
+	private static ArrayList<EnumStructure> enumStructure(PackageStructure packageStructure) {
+		ArrayList<EnumStructure> enums = new ArrayList<>();
 
-        for (EnumStructure classStructure : packageStructure.getEnums()) {
-            enums.add(classStructure);
-        }
+		for (EnumStructure classStructure : packageStructure.getEnums()) {
+			enums.add(classStructure);
+		}
 
-        for (PackageStructure ps : packageStructure.getPackages()) {
-            enums.addAll(enumStructure(ps));
-        }
-        return enums;
-    }
-
+		for (PackageStructure ps : packageStructure.getPackages()) {
+			enums.addAll(enumStructure(ps));
+		}
+		return enums;
+	}
 
 }
