@@ -2,10 +2,9 @@ DROP TABLE IF EXISTS dev.Diagram ;
 
 -- SQLINES LICENSE FOR EVALUATION USE ONLY
 CREATE TABLE IF NOT EXISTS dev.Diagram (
-  idDiagram SERIAL NOT NULL,
-  idUml VARCHAR(45) NULL,
+  id_diagram SERIAL NOT NULL,
+  id_uml VARCHAR(45) NULL,
   name VARCHAR(45) NULL,
   type VARCHAR(45) NULL,
-  umlId VARCHAR(45) NULL,
-  PRIMARY KEY (idDiagram))
+  PRIMARY KEY (id_diagram))
 ;
