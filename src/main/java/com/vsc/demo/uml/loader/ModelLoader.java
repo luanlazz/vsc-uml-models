@@ -122,18 +122,17 @@ public class ModelLoader {
     public Package loadModel(File file) throws IOException {
         if (file.getName().endsWith("uml")) {
             return loadUMLModel(file);
-        } else if (file.getName().equals("ecore")) {
+        } else if (file.getName().endsWith("ecore")) {
             return loadEcoreModel(file);
         }
         return null;
     }
 
     private Package loadUMLModel(File file) throws IOException {
-
         Resource resource = registerModel(file);
 
         Package _package;
-
+        
 //        for (EObject ojEObject : resource.getContents()) {
 //            System.out.println(ojEObject.getClass());
 //        }
@@ -165,7 +164,6 @@ public class ModelLoader {
     }
 
     private Package loadEcoreModel(File file) throws IOException {
-
         Resource resource = registerModel(file);
 
         EPackage _package;
