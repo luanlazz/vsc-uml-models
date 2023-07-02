@@ -1,8 +1,5 @@
 package com.vsc.demo.dao;
 
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
@@ -28,7 +25,6 @@ public class AttributeEntity {
 	private String idUml;
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "id_class", nullable = false)
-	@OnDelete(action = OnDeleteAction.CASCADE)
 	@JsonIgnore
 	private ClassEntity classEntity;
 	@Column(name = "name")
@@ -65,11 +61,11 @@ public class AttributeEntity {
 		this.idUml = idUml;
 	}
 
-	public ClassEntity getIdClass() {
+	public ClassEntity getClassEntity() {
 		return classEntity;
 	}
 
-	public void setIdClass(ClassEntity classEntity) {
+	public void setClassEntity(ClassEntity classEntity) {
 		this.classEntity = classEntity;
 	}
 

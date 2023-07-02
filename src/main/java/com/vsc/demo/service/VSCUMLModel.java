@@ -21,6 +21,7 @@ import com.vsc.demo.uml.models._class.ClassAttribute;
 import com.vsc.demo.uml.models._class.ClassOperation;
 import com.vsc.demo.uml.models._class.ClassStructure;
 import com.vsc.demo.uml.models._class.OperationParameter;
+import com.vsc.demo.uml.models._class.UMLElement;
 import com.vsc.demo.uml.models._class.UMLModel;
 
 import lombok.extern.slf4j.Slf4j;
@@ -72,7 +73,7 @@ public class VSCUMLModel {
 	public DiagramEntity saveChanges(DiagramEntity model, UMLModel newModel) {
 		DiagramEntity diagramEntity = new DiagramEntity();
 		this.addedClass(model, newModel);
-
+		this.removedClass(model, newModel);
 		return diagramEntity;
 	}
 
@@ -86,7 +87,7 @@ public class VSCUMLModel {
 			ClassEntity classExists = findClassById(model.getClasses(), _class.getId());
 			if (classExists == null) {
 				addClasses.add(classStrucutureToEntity(_class, model));
-				break;
+				continue;
 			}
 
 			for (ClassAttribute attribute : _class.getAttributes()) {
@@ -100,7 +101,7 @@ public class VSCUMLModel {
 				OperationEntity operationExists = findOperationById(classExists, operation.getId());
 				if (operationExists == null) {
 					addOperations.add(classOperationToEntity(operation, classExists));
-					break;
+					continue;
 				}
 
 				for (OperationParameter parameter : operation.getParameters()) {
@@ -133,20 +134,86 @@ public class VSCUMLModel {
 		}
 	}
 
-	public void removedClass() {
+	public void removedClass(DiagramEntity model, UMLModel newModel) {
+		List<ClassEntity> removedClasses = new ArrayList<ClassEntity>();
+		List<AttributeEntity> removedAttributes = new ArrayList<AttributeEntity>();
+		List<OperationEntity> removedOperations = new ArrayList<OperationEntity>();
+		List<OperationParameterEntity> removedParameters = new ArrayList<OperationParameterEntity>();
 
-	}
+		ArrayList<UMLElement> classes = new ArrayList<UMLElement>(newModel.getClasses());
+		for (ClassEntity _class : model.getClasses()) {
+			ClassStructure classExists = (ClassStructure) findById(classes, _class.getIdUml());
+			if (classExists == null) {
+				removedClasses.add(_class);
+				continue;
+			}
 
-	public void removedAttributes() {
+			ArrayList<UMLElement> attributes = new ArrayList<UMLElement>(classExists.getAttributes());
+			for (AttributeEntity attribute : _class.getAttributes()) {
+				ClassAttribute attributeExists = (ClassAttribute) findById(attributes, attribute.getIdUml());
+				if (attributeExists == null) {
+					removedAttributes.add(attribute);
+				}
+			}
 
-	}
+			ArrayList<UMLElement> operations = new ArrayList<UMLElement>(classExists.getOperations());
+			for (OperationEntity operation : _class.getOperations()) {
+				ClassOperation operationExists = (ClassOperation) findById(operations, operation.getIdUml());
+				if (operationExists == null) {
+					removedOperations.add(operation);
+					continue;
+				}
 
-	public void removedOperations() {
-
-	}
-
-	public void removedParameters() {
-
+				ArrayList<UMLElement> parameters = new ArrayList<UMLElement>(operationExists.getParameters());
+				for (OperationParameterEntity parameter : operation.getParameters()) {
+					OperationParameter parameterExists = (OperationParameter) findById(parameters,
+							parameter.getIdUml());
+					if (parameterExists == null) {
+						removedParameters.add(parameter);
+					}
+				}
+			}
+		}
+		
+		for (ClassEntity _class : removedClasses) {
+//			DiagramEntity diagram = _class.getDiagramEntity();
+//			boolean removed = diagram.removeClass(_class);
+//			if (removed) {
+//				diagramRepository.save(diagram);
+			classRepository.delete(_class);
+			System.out.println("removed class: " + _class.getName());
+//			}
+		}
+		
+		for (AttributeEntity attribute : removedAttributes) {
+//			ClassEntity _class = attribute.getClassEntity();
+//			boolean removed = _class.removeAttribute(attribute);
+//			if (removed) {
+//				classRepository.save(_class);
+			attributeRepository.delete(attribute);
+			System.out.println("removed attribute: " + attribute.getName());
+//			}
+		}
+		
+		for (OperationEntity operation : removedOperations) {
+//			ClassEntity _class = operation.getClassEntity();
+//			boolean removed = _class.removeOperation(operation);
+//			if (removed) {
+//				classRepository.save(_class);
+			operationRepository.delete(operation);
+			System.out.println("removed operation: " + operation.getName());
+//			}
+		}
+		
+		for (OperationParameterEntity parameter : removedParameters) {
+//			OperationEntity operation = parameter.getOperationEntity();
+//			boolean removed = operation.removeParameter(parameter);
+//			if (removed) {
+//				operationRepository.save(operation);
+			parameterRepository.delete(parameter);
+//				System.out.println("removed parameter: " + parameter.getName());
+//			}
+		}		
 	}
 
 	public void alterClass() {
@@ -167,6 +234,19 @@ public class VSCUMLModel {
 	public void alterParameter() {
 		// parameter (name, type, value default)
 
+	}
+
+	public static UMLElement findById(ArrayList<UMLElement> elements, String id) {
+		UMLElement element = null;
+
+		for (UMLElement el : elements) {
+			if (el.getId().equals(id)) {
+				element = el;
+				break;
+			}
+		}
+
+		return element;
 	}
 
 	public static ClassEntity findClassById(List<ClassEntity> classes, String id) {

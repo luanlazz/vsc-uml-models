@@ -3,14 +3,10 @@ package com.vsc.demo.uml.models._class;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClassStructure {
+public class ClassStructure extends UMLElement {
 
-	private String id;
     private String _package;
     private List<String> imports = new ArrayList<>();
-    private String name;
-    private String visibility;
-    private String type;
     private boolean _abstract;
     private boolean _final;
     private List<String> rules = new ArrayList<>();
@@ -19,14 +15,6 @@ public class ClassStructure {
     private List<ClassAttribute> attributes = new ArrayList<>();
     private List<ClassOperation> operations = new ArrayList<>();
     private List<ClassRelation> relationships = new ArrayList<>();
-
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
 
 	public void addRelationship(ClassRelation relationship) {
         relationships.add(relationship);
@@ -70,30 +58,6 @@ public class ClassStructure {
 
     public void setImports(List<String> imports) {
         this.imports = imports;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getVisibility() {
-        return visibility;
-    }
-
-    public void setVisibility(String visibility) {
-        this.visibility = visibility;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public List<String> getRules() {

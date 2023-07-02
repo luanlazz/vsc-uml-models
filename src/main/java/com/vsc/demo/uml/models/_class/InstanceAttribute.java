@@ -1,10 +1,7 @@
 package com.vsc.demo.uml.models._class;
 
-public class InstanceAttribute {
-	
-	private String id;
-	private String name;
-	private String type;
+public class InstanceAttribute extends UMLElement {
+
 	private Object values[];
 	private boolean isClass;
 	private boolean isEnum;
@@ -16,20 +13,11 @@ public class InstanceAttribute {
 
 	public InstanceAttribute(String name, String type, Object values[], boolean isClass, boolean isEnum,
 			boolean isCollection) {
-		this.name = name;
-		this.type = type;
+		super(name, null, type);
 		this.values = values;
 		this.isClass = isClass;
 		this.isEnum = isEnum;
 		this.isCollection = isCollection;
-	}
-
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
 	}
 
 	public boolean getIsClass() {
@@ -42,22 +30,6 @@ public class InstanceAttribute {
 
 	public boolean getIsCollection() {
 		return isCollection;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
 	}
 
 	public Object[] getValues() {

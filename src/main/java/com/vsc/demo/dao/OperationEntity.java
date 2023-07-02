@@ -3,9 +3,6 @@ package com.vsc.demo.dao;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
@@ -33,7 +30,6 @@ public class OperationEntity {
 	private String idUml;
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "id_class", nullable = false)
-	@OnDelete(action = OnDeleteAction.CASCADE)
 	@JsonIgnore
 	private ClassEntity classEntity;
 	private Long idReturn;
@@ -79,11 +75,11 @@ public class OperationEntity {
 		this.idUml = idUml;
 	}
 
-	public ClassEntity getIdClass() {
+	public ClassEntity getClassEntity() {
 		return classEntity;
 	}
 
-	public void setIdClass(ClassEntity classEntity) {
+	public void setClassEntity(ClassEntity classEntity) {
 		this.classEntity = classEntity;
 	}
 
@@ -121,6 +117,10 @@ public class OperationEntity {
 
 	public void addParameter(OperationParameterEntity parameter) {
 		this.parameters.add(parameter);
+	}
+
+	public boolean removeParameter(OperationParameterEntity parameter) {
+		return parameters.remove(parameter);
 	}
 
 	public List<OperationParameterEntity> getParameters() {

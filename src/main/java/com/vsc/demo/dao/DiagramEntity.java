@@ -76,6 +76,10 @@ public class DiagramEntity {
 		this.classes.add(classEntity);
 	}
 
+	public boolean removeClass(ClassEntity classEntity) {
+		return this.classes.remove(classEntity);
+	}
+
 	public List<ClassEntity> getClasses() {
 		return classes;
 	}

@@ -3,9 +3,6 @@ package com.vsc.demo.dao;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
@@ -33,7 +30,6 @@ public class ClassEntity {
 	private String idUml;
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "id_diagram", nullable = false)
-	@OnDelete(action = OnDeleteAction.CASCADE)
 	@JsonIgnore
 	private DiagramEntity diagramEntity;
 	@Column(name = "name")
@@ -106,7 +102,15 @@ public class ClassEntity {
 		this.attributes.add(attribute);
 	}
 
+	public boolean removeAttribute(AttributeEntity attribute) {
+		return this.attributes.remove(attribute);
+	}
+
 	public void addOperation(OperationEntity operation) {
 		this.operations.add(operation);
+	}
+
+	public boolean removeOperation(OperationEntity operation) {
+		return this.operations.remove(operation);
 	}
 }

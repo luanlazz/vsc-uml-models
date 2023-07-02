@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import com.vsc.demo.uml.models._enum.EnumStructure;
 
 public class UMLModel implements Serializable {
-	
+
 	private static final long serialVersionUID = 1L;
-	
+
 	private String id;
 	private String name;
 	private String type = "model";
@@ -23,7 +23,7 @@ public class UMLModel implements Serializable {
 	public void setId(String id) {
 		this.id = id;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
@@ -31,7 +31,7 @@ public class UMLModel implements Serializable {
 	public void setName(String name) {
 		this.name = name;
 	}
-	
+
 	public String getType() {
 		return type;
 	}
