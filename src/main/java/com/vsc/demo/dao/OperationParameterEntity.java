@@ -46,7 +46,7 @@ public class OperationParameterEntity {
 		this.idUml = idUml;
 		this.operation = operation;
 		this.name = name;
-		IdType = idType;
+		this.IdType = idType;
 		this.valueDefault = valueDefault;
 	}
 

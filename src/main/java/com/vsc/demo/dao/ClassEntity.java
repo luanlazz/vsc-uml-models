@@ -86,6 +86,22 @@ public class ClassEntity {
 		this.name = name;
 	}
 
+	public List<AttributeEntity> getAttributes() {
+		return attributes;
+	}
+
+	public void setAttributes(List<AttributeEntity> attributes) {
+		this.attributes = attributes;
+	}
+
+	public List<OperationEntity> getOperations() {
+		return operations;
+	}
+
+	public void setOperations(List<OperationEntity> operations) {
+		this.operations = operations;
+	}
+
 	public void addAttribute(AttributeEntity attribute) {
 		this.attributes.add(attribute);
 	}

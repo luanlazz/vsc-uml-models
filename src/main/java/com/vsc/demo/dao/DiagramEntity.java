@@ -75,4 +75,12 @@ public class DiagramEntity {
 	public void addClass(ClassEntity classEntity) {
 		this.classes.add(classEntity);
 	}
+
+	public List<ClassEntity> getClasses() {
+		return classes;
+	}
+
+	public void setClasses(List<ClassEntity> classes) {
+		this.classes = classes;
+	}
 }

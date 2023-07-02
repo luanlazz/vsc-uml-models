@@ -122,4 +122,12 @@ public class OperationEntity {
 	public void addParameter(OperationParameterEntity parameter) {
 		this.parameters.add(parameter);
 	}
+
+	public List<OperationParameterEntity> getParameters() {
+		return parameters;
+	}
+
+	public void setParameters(List<OperationParameterEntity> parameters) {
+		this.parameters = parameters;
+	}
 }
