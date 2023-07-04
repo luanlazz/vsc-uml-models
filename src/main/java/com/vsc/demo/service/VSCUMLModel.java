@@ -48,7 +48,7 @@ public class VSCUMLModel {
 		if (model == null) {
 			model = this.saveNewModel(newModel);
 		} else {
-			model = this.saveChanges(model, newModel);
+			this.saveChanges(model, newModel);
 		}
 	}
 
@@ -70,11 +70,10 @@ public class VSCUMLModel {
 		return diagramEntity;
 	}
 
-	public DiagramEntity saveChanges(DiagramEntity model, UMLModel newModel) {
-		DiagramEntity diagramEntity = new DiagramEntity();
+	public void saveChanges(DiagramEntity model, UMLModel newModel) {
 		this.addedClass(model, newModel);
 		this.removedClass(model, newModel);
-		return diagramEntity;
+		this.alterClass(model, newModel);
 	}
 
 	public void addedClass(DiagramEntity model, UMLModel newModel) {
@@ -174,46 +173,121 @@ public class VSCUMLModel {
 				}
 			}
 		}
-		
+
 		for (ClassEntity _class : removedClasses) {
-//			DiagramEntity diagram = _class.getDiagramEntity();
-//			boolean removed = diagram.removeClass(_class);
-//			if (removed) {
-//				diagramRepository.save(diagram);
-			classRepository.delete(_class);
-			System.out.println("removed class: " + _class.getName());
-//			}
+			DiagramEntity diagram = _class.getDiagramEntity();
+			boolean removed = diagram.removeClass(_class);
+			if (removed) {
+				diagramRepository.save(diagram);
+				classRepository.delete(_class);
+				System.out.println("removed class: " + _class.getName());
+			}
 		}
-		
+
 		for (AttributeEntity attribute : removedAttributes) {
-//			ClassEntity _class = attribute.getClassEntity();
-//			boolean removed = _class.removeAttribute(attribute);
-//			if (removed) {
-//				classRepository.save(_class);
-			attributeRepository.delete(attribute);
-			System.out.println("removed attribute: " + attribute.getName());
-//			}
+			ClassEntity _class = attribute.getClassEntity();
+			boolean removed = _class.removeAttribute(attribute);
+			if (removed) {
+				classRepository.save(_class);
+				attributeRepository.delete(attribute);
+				System.out.println("removed attribute: " + attribute.getName());
+			}
 		}
-		
+
 		for (OperationEntity operation : removedOperations) {
-//			ClassEntity _class = operation.getClassEntity();
-//			boolean removed = _class.removeOperation(operation);
-//			if (removed) {
-//				classRepository.save(_class);
-			operationRepository.delete(operation);
-			System.out.println("removed operation: " + operation.getName());
-//			}
+			ClassEntity _class = operation.getClassEntity();
+			boolean removed = _class.removeOperation(operation);
+			if (removed) {
+				classRepository.save(_class);
+				operationRepository.delete(operation);
+				System.out.println("removed operation: " + operation.getName());
+			}
 		}
-		
+
 		for (OperationParameterEntity parameter : removedParameters) {
-//			OperationEntity operation = parameter.getOperationEntity();
-//			boolean removed = operation.removeParameter(parameter);
-//			if (removed) {
-//				operationRepository.save(operation);
-			parameterRepository.delete(parameter);
-//				System.out.println("removed parameter: " + parameter.getName());
-//			}
-		}		
+			OperationEntity operation = parameter.getOperationEntity();
+			boolean removed = operation.removeParameter(parameter);
+			if (removed) {
+				operationRepository.save(operation);
+				parameterRepository.delete(parameter);
+				System.out.println("removed parameter: " + parameter.getName());
+			}
+		}
+	}
+
+	public void alterClass(DiagramEntity model, UMLModel newModel) {
+
+		for (ClassStructure _class : newModel.getClasses()) {
+			ClassEntity classExists = findClassById(model.getClasses(), _class.getId());
+			if (classExists != null) {
+				if (!classExists.getName().equals(_class.getName())) {
+					// change name
+					System.out.println("Class: " + classExists.getName() + " change name to: " + _class.getName());
+				}
+//				if (!classExists().equals(_class.getSuperClasses())) {
+//					// change name
+//				}
+			}
+
+			for (ClassAttribute attribute : _class.getAttributes()) {
+				AttributeEntity attributeExists = findAttributeById(classExists, attribute.getId());
+				if (attributeExists != null) {
+					if (!attributeExists.getName().equals(attribute.getName())) {
+						// change name
+						System.out.println(
+								"Attribute: " + attributeExists.getName() + " change name to: " + attribute.getName());
+					}
+//					if (!attributeExists.getIdType().toString().equals(attribute.getType())) {
+//						// change type
+//						System.out.println("Attribute: " + attributeExists.getIdType().toString() + " change type to: "
+//								+ attribute.getType());
+//					}
+					if (!attributeExists.getVisibility().equals(attribute.getVisibility())) {
+						// change visibility
+						System.out.println("Attribute: " + attributeExists.getVisibility() + " change visibility to: "
+								+ attribute.getVisibility());
+					}
+				}
+			}
+
+			for (ClassOperation operation : _class.getOperations()) {
+				OperationEntity operationExists = findOperationById(classExists, operation.getId());
+				if (operationExists != null) {
+					if (!operationExists.getName().equals(operation.getName())) {
+						// change name
+						System.out.println(
+								"Operation: " + operationExists.getName() + " change name to: " + operation.getName());
+					}
+//					if (!operationExists.getIdType().toString().equals(operation.getType())) {
+//						// change type
+//						System.out.println("Operation: " + operationExists.getIdType().toString() + " change type to: "
+//								+ operation.getType());
+//					}
+					if (!operationExists.getVisibility().equals(operation.getVisibility())) {
+						// change visibility
+						System.out.println("Operation: " + operationExists.getVisibility() + " change visibility to: "
+								+ operation.getVisibility());
+					}
+				}
+
+				for (OperationParameter parameter : operation.getParameters()) {
+					OperationParameterEntity parameterExists = findParameterById(operationExists, parameter.getId());
+					if (parameterExists != null) {
+						if (!parameterExists.getName().equals(parameter.getName())) {
+							// change name
+							System.out.println("Operation parameter: " + parameterExists.getName() + " change name to: "
+									+ parameter.getName());
+						}
+//						if (!parameterExists.getIdType().toString().equals(parameter.getType())) {
+//							// change type
+//							System.out.println("Operation parameter: " + parameterExists.getIdType().toString() + " change type to: "
+//									+ parameter.getType());
+//						}
+
+					}
+				}
+			}
+		}
 	}
 
 	public void alterClass() {
