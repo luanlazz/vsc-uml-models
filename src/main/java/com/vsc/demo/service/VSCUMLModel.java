@@ -184,43 +184,27 @@ public class VSCUMLModel {
 		}
 
 		for (ClassEntity _class : removedClasses) {
-			DiagramEntity diagram = _class.getDiagramEntity();
-			boolean removed = diagram.removeClass(_class);
-			if (removed) {
-				diagramRepository.save(diagram);
-				classRepository.delete(_class);
+			_class.setVersion(this.version);
+			classRepository.softDelete(_class.getId());
 				System.out.println("removed class: " + _class.getName());
 			}
-		}
 
 		for (AttributeEntity attribute : removedAttributes) {
-			ClassEntity _class = attribute.getClassEntity();
-			boolean removed = _class.removeAttribute(attribute);
-			if (removed) {
-				classRepository.save(_class);
-				attributeRepository.delete(attribute);
+			attribute.setVersion(this.version);
+			attributeRepository.softDelete(attribute.getId());
 				System.out.println("removed attribute: " + attribute.getName());
 			}
-		}
 
 		for (OperationEntity operation : removedOperations) {
-			ClassEntity _class = operation.getClassEntity();
-			boolean removed = _class.removeOperation(operation);
-			if (removed) {
-				classRepository.save(_class);
-				operationRepository.delete(operation);
+			operation.setVersion(this.version);
+			operationRepository.softDelete(operation.getId());
 				System.out.println("removed operation: " + operation.getName());
 			}
-		}
 
 		for (OperationParameterEntity parameter : removedParameters) {
-			OperationEntity operation = parameter.getOperationEntity();
-			boolean removed = operation.removeParameter(parameter);
-			if (removed) {
-				operationRepository.save(operation);
-				parameterRepository.delete(parameter);
+			parameter.setVersion(this.version);
+			parameterRepository.softDelete(parameter.getId());
 				System.out.println("removed parameter: " + parameter.getName());
-			}
 		}
 	}
 
@@ -400,11 +384,11 @@ public class VSCUMLModel {
 	}
 
 	public AttributeEntity classAttributeToEntity(ClassAttribute attribute, ClassEntity classEntity) {
-		return new AttributeEntity(attribute.getId(), classEntity, attribute.getName(), null,
-				attribute.getVisibility(), this.version);
+		return new AttributeEntity(attribute.getId(), classEntity, attribute.getName(), null, attribute.getVisibility(),
+				this.version);
 	}
 
-	public  OperationEntity classOperationToEntity(ClassOperation operation, ClassEntity classEntity) {
+	public OperationEntity classOperationToEntity(ClassOperation operation, ClassEntity classEntity) {
 		OperationEntity _operation = new OperationEntity(operation.getId(), classEntity, null, operation.getName(),
 				null, operation.getVisibility(), null, this.version);
 

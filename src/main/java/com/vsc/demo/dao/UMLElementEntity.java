@@ -5,13 +5,9 @@ import java.util.Date;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Temporal;
@@ -25,7 +21,7 @@ public abstract class UMLElementEntity {
 	@Column(name = "name")
 	private String name;
 	@OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "id_version", referencedColumnName = "id")
+	@JoinColumn(name = "id_version", referencedColumnName = "id")
 	private VersionEntity version;
 	@CreationTimestamp
 	@Temporal(TemporalType.TIMESTAMP)
@@ -35,7 +31,6 @@ public abstract class UMLElementEntity {
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "modify_at")
 	private Date modifyDate;
-	@UpdateTimestamp
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "deleted_at")
 	private Date deletedDate;
@@ -106,10 +101,5 @@ public abstract class UMLElementEntity {
 
 	public void setDeleted(boolean isDeleted) {
 		this.isDeleted = isDeleted;
-	}
-
-	public void inactive() {
-		this.deletedDate = new Date();
-		this.isDeleted = true;
 	}
 }

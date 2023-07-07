@@ -3,6 +3,8 @@ package com.vsc.demo.dao;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.Where;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
@@ -15,13 +17,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "class")
+@Where(clause = "is_deleted = false")
 public class ClassEntity extends UMLElementEntity {
+
 	@Id
 	@GeneratedValue(generator = "class_id_sequence", strategy = GenerationType.SEQUENCE)
 	@SequenceGenerator(name = "class_id_sequence", sequenceName = "class_id_sequence", allocationSize = 1)
