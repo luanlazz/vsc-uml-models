@@ -3,28 +3,30 @@ package com.vsc.demo.dao;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "diagram")
-public class DiagramEntity {
+public class DiagramEntity extends UMLElementEntity {
 	@Id
 	@GeneratedValue(generator = "diagram_id_sequence", strategy = GenerationType.SEQUENCE)
 	@SequenceGenerator(name = "diagram_id_sequence", sequenceName = "diagram_id_sequence", allocationSize = 1)
-	@Column(name = "id_diagram")
+	@Column(name = "id")
 	private Long id;
-	@Column(name = "id_uml")
-	private String idUml;
-	@Column(name = "name")
-	private String name;
 	@Column(name = "type")
 	private String type;
 	@OneToMany(mappedBy = "diagramEntity", cascade = CascadeType.ALL)
@@ -33,9 +35,8 @@ public class DiagramEntity {
 	public DiagramEntity() {
 	}
 
-	public DiagramEntity(String idUml, String name, String type) {
-		this.idUml = idUml;
-		this.name = name;
+	public DiagramEntity(String idUml, String name, String type, VersionEntity version) {
+		super(idUml, name, version);
 		this.type = type;
 		this.classes = new ArrayList<ClassEntity>();
 	}
@@ -46,22 +47,6 @@ public class DiagramEntity {
 
 	public void setId(Long id) {
 		this.id = id;
-	}
-
-	public String getIdUml() {
-		return idUml;
-	}
-
-	public void setIdUml(String idUml) {
-		this.idUml = idUml;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public String getType() {

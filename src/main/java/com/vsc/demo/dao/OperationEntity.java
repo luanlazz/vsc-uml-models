@@ -15,26 +15,23 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "operation")
-public class OperationEntity {
+public class OperationEntity extends UMLElementEntity {
 	@Id
 	@GeneratedValue(generator = "operation_id_sequence", strategy = GenerationType.SEQUENCE)
 	@SequenceGenerator(name = "operation_id_sequence", sequenceName = "operation_id_sequence", allocationSize = 1)
-	@Column(name = "id_operation")
+	@Column(name = "id")
 	private Long id;
-	@Column(name = "id_uml")
-	private String idUml;
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "id_class", nullable = false)
 	@JsonIgnore
 	private ClassEntity classEntity;
 	private Long idReturn;
-	@Column(name = "name")
-	private String name;
 	@Column(name = "id_type")
 	private Long IdType;
 	@Column(name = "visibility")
@@ -48,11 +45,10 @@ public class OperationEntity {
 	}
 
 	public OperationEntity(String idUml, ClassEntity classEntity, Long idReturn, String name, Long idType,
-			String visibility, String isClass) {
-		this.idUml = idUml;
+			String visibility, String isClass, VersionEntity version) {
+		super(idUml, name, version);
 		this.classEntity = classEntity;
 		this.idReturn = idReturn;
-		this.name = name;
 		this.IdType = idType;
 		this.visibility = visibility;
 		this.isClass = isClass;
@@ -67,28 +63,12 @@ public class OperationEntity {
 		this.id = id;
 	}
 
-	public String getIdUml() {
-		return idUml;
-	}
-
-	public void setIdUml(String idUml) {
-		this.idUml = idUml;
-	}
-
 	public ClassEntity getClassEntity() {
 		return classEntity;
 	}
 
 	public void setClassEntity(ClassEntity classEntity) {
 		this.classEntity = classEntity;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public Long getIdType() {

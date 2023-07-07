@@ -2,6 +2,7 @@ package com.vsc.demo.dao;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -10,25 +11,22 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "attribute")
-public class AttributeEntity {
+public class AttributeEntity extends UMLElementEntity {
 	@Id
 	@GeneratedValue(generator = "attribute_id_sequence", strategy = GenerationType.SEQUENCE)
 	@SequenceGenerator(name = "attribute_id_sequence", sequenceName = "attribute_id_sequence", allocationSize = 1)
-	@Column(name = "id_attribute")
+	@Column(name = "id")
 	private Long id;
-	@Column(name = "id_uml")
-	private String idUml;
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "id_class", nullable = false)
 	@JsonIgnore
 	private ClassEntity classEntity;
-	@Column(name = "name")
-	private String name;
 	@Column(name = "id_type")
 	private Long IdType;
 	@Column(name = "visibility")
@@ -37,10 +35,10 @@ public class AttributeEntity {
 	public AttributeEntity() {
 	}
 
-	public AttributeEntity(String idUml, ClassEntity classEntity, String name, Long idType, String visibility) {
-		this.idUml = idUml;
+	public AttributeEntity(String idUml, ClassEntity classEntity, String name, Long idType, String visibility,
+			VersionEntity version) {
+		super(idUml, name, version);
 		this.classEntity = classEntity;
-		this.name = name;
 		this.IdType = idType;
 		this.visibility = visibility;
 	}
@@ -53,28 +51,12 @@ public class AttributeEntity {
 		this.id = id;
 	}
 
-	public String getIdUml() {
-		return idUml;
-	}
-
-	public void setIdUml(String idUml) {
-		this.idUml = idUml;
-	}
-
 	public ClassEntity getClassEntity() {
 		return classEntity;
 	}
 
 	public void setClassEntity(ClassEntity classEntity) {
 		this.classEntity = classEntity;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public Long getIdType() {

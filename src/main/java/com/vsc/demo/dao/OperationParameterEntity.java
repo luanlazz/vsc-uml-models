@@ -2,6 +2,7 @@ package com.vsc.demo.dao;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -10,25 +11,22 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "op_parameter")
-public class OperationParameterEntity {
+public class OperationParameterEntity extends UMLElementEntity {
 	@Id
 	@GeneratedValue(generator = "op_parameter_id_sequence", strategy = GenerationType.SEQUENCE)
 	@SequenceGenerator(name = "op_parameter_id_sequence", sequenceName = "op_parameter_id_sequence", allocationSize = 1)
-	@Column(name = "id_parameter")
+	@Column(name = "id")
 	private Long id;
-	@Column(name = "id_uml")
-	private String idUml;
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "id_operation", nullable = false)
 	@JsonIgnore
 	private OperationEntity operation;
-	@Column(name = "name")
-	private String name;
 	@Column(name = "id_type")
 	private Long IdType;
 	@Column(name = "value_default")
@@ -38,10 +36,9 @@ public class OperationParameterEntity {
 	}
 
 	public OperationParameterEntity(String idUml, OperationEntity operation, String name, Long idType,
-			String valueDefault) {
-		this.idUml = idUml;
+			String valueDefault, VersionEntity version) {
+		super(idUml, name, version);
 		this.operation = operation;
-		this.name = name;
 		this.IdType = idType;
 		this.valueDefault = valueDefault;
 	}
@@ -54,28 +51,12 @@ public class OperationParameterEntity {
 		this.id = id;
 	}
 
-	public String getIdUml() {
-		return idUml;
-	}
-
-	public void setIdUml(String idUml) {
-		this.idUml = idUml;
-	}
-
 	public OperationEntity getOperationEntity() {
 		return operation;
 	}
 
 	public void setOperationEntity(OperationEntity operation) {
 		this.operation = operation;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public Long getIdType() {

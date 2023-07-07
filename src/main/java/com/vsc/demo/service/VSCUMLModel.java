@@ -12,11 +12,13 @@ import com.vsc.demo.dao.ClassEntity;
 import com.vsc.demo.dao.DiagramEntity;
 import com.vsc.demo.dao.OperationEntity;
 import com.vsc.demo.dao.OperationParameterEntity;
+import com.vsc.demo.dao.VersionEntity;
 import com.vsc.demo.repository.AttributeRepository;
 import com.vsc.demo.repository.ClassRepository;
 import com.vsc.demo.repository.DiagramRepository;
 import com.vsc.demo.repository.OperationParameterRepository;
 import com.vsc.demo.repository.OperationRepository;
+import com.vsc.demo.repository.VersionRepository;
 import com.vsc.demo.uml.models._class.ClassAttribute;
 import com.vsc.demo.uml.models._class.ClassOperation;
 import com.vsc.demo.uml.models._class.ClassStructure;
@@ -41,26 +43,33 @@ public class VSCUMLModel {
 	private OperationRepository operationRepository;
 	@Autowired
 	private OperationParameterRepository parameterRepository;
+	@Autowired
+	private VersionRepository versionRepository;
+	
+	private VersionEntity version = null;
 
 	// Save a new model, read all elements and persist
 	public void versionControlUml(UMLModel newModel) {
 		DiagramEntity model = this.loadModelById(newModel.getId());
+		
+		this.version = new VersionEntity();
+		this.versionRepository.save(this.version);
+
 		if (model == null) {
 			model = this.saveNewModel(newModel);
+			diagramRepository.save(model);
+			System.out.println("new model save: " + model.getName());
 		} else {
 			this.saveChanges(model, newModel);
 		}
 	}
 
 	public DiagramEntity saveNewModel(UMLModel model) {
-		DiagramEntity diagram = new DiagramEntity(model.getId(), model.getName(), model.getType());
+		DiagramEntity diagram = new DiagramEntity(model.getId(), model.getName(), model.getType(), this.version);
 
 		for (ClassStructure _class : model.getClasses()) {
 			diagram.addClass(classStrucutureToEntity(_class, diagram));
 		}
-
-		diagramRepository.save(diagram);
-		System.out.println("new model save: " + diagram.getName());
 
 		return diagram;
 	}
@@ -71,12 +80,12 @@ public class VSCUMLModel {
 	}
 
 	public void saveChanges(DiagramEntity model, UMLModel newModel) {
-		this.addedClass(model, newModel);
-		this.removedClass(model, newModel);
-		this.alterClass(model, newModel);
+		this.addedElements(model, newModel);
+		this.removedElements(model, newModel);
+		this.alterElements(model, newModel);
 	}
 
-	public void addedClass(DiagramEntity model, UMLModel newModel) {
+	public void addedElements(DiagramEntity model, UMLModel newModel) {
 		List<ClassEntity> addClasses = new ArrayList<ClassEntity>();
 		List<AttributeEntity> addAttributes = new ArrayList<AttributeEntity>();
 		List<OperationEntity> addOperations = new ArrayList<OperationEntity>();
@@ -133,7 +142,7 @@ public class VSCUMLModel {
 		}
 	}
 
-	public void removedClass(DiagramEntity model, UMLModel newModel) {
+	public void removedElements(DiagramEntity model, UMLModel newModel) {
 		List<ClassEntity> removedClasses = new ArrayList<ClassEntity>();
 		List<AttributeEntity> removedAttributes = new ArrayList<AttributeEntity>();
 		List<OperationEntity> removedOperations = new ArrayList<OperationEntity>();
@@ -215,8 +224,9 @@ public class VSCUMLModel {
 		}
 	}
 
-	public void alterClass(DiagramEntity model, UMLModel newModel) {
-
+	public void alterElements(DiagramEntity model, UMLModel newModel) {
+		
+		
 		for (ClassStructure _class : newModel.getClasses()) {
 			ClassEntity classExists = findClassById(model.getClasses(), _class.getId());
 			if (classExists != null) {
@@ -375,8 +385,8 @@ public class VSCUMLModel {
 		return parameterFind;
 	}
 
-	public static ClassEntity classStrucutureToEntity(ClassStructure _class, DiagramEntity diagram) {
-		ClassEntity classEntity = new ClassEntity(_class.getId(), diagram, _class.getName());
+	public ClassEntity classStrucutureToEntity(ClassStructure _class, DiagramEntity diagram) {
+		ClassEntity classEntity = new ClassEntity(_class.getId(), diagram, _class.getName(), this.version);
 
 		for (ClassAttribute attribute : _class.getAttributes()) {
 			classEntity.addAttribute(classAttributeToEntity(attribute, classEntity));
@@ -389,14 +399,14 @@ public class VSCUMLModel {
 		return classEntity;
 	}
 
-	public static AttributeEntity classAttributeToEntity(ClassAttribute attribute, ClassEntity classEntity) {
+	public AttributeEntity classAttributeToEntity(ClassAttribute attribute, ClassEntity classEntity) {
 		return new AttributeEntity(attribute.getId(), classEntity, attribute.getName(), null,
-				attribute.getVisibility());
+				attribute.getVisibility(), this.version);
 	}
 
-	public static OperationEntity classOperationToEntity(ClassOperation operation, ClassEntity classEntity) {
+	public  OperationEntity classOperationToEntity(ClassOperation operation, ClassEntity classEntity) {
 		OperationEntity _operation = new OperationEntity(operation.getId(), classEntity, null, operation.getName(),
-				null, operation.getVisibility(), null);
+				null, operation.getVisibility(), null, this.version);
 
 		for (OperationParameter operationParameter : operation.getParameters()) {
 			_operation.addParameter(opParameterToEntity(operationParameter, _operation));
@@ -405,9 +415,9 @@ public class VSCUMLModel {
 		return _operation;
 	}
 
-	public static OperationParameterEntity opParameterToEntity(OperationParameter operationParameter,
+	public OperationParameterEntity opParameterToEntity(OperationParameter operationParameter,
 			OperationEntity operation) {
 		return new OperationParameterEntity(operationParameter.getId(), operation, operationParameter.getName(), null,
-				null);
+				null, this.version);
 	}
 }

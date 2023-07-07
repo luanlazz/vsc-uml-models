@@ -15,25 +15,22 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "class")
-public class ClassEntity {
+public class ClassEntity extends UMLElementEntity {
 	@Id
 	@GeneratedValue(generator = "class_id_sequence", strategy = GenerationType.SEQUENCE)
 	@SequenceGenerator(name = "class_id_sequence", sequenceName = "class_id_sequence", allocationSize = 1)
-	@Column(name = "id_class")
+	@Column(name = "id")
 	private Long id;
-	@Column(name = "id_uml")
-	private String idUml;
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "id_diagram", nullable = false)
 	@JsonIgnore
 	private DiagramEntity diagramEntity;
-	@Column(name = "name")
-	private String name;
 	@OneToMany(mappedBy = "classEntity", cascade = CascadeType.ALL)
 	private List<AttributeEntity> attributes;
 	@OneToMany(mappedBy = "classEntity", cascade = CascadeType.ALL)
@@ -42,10 +39,9 @@ public class ClassEntity {
 	public ClassEntity() {
 	}
 
-	public ClassEntity(String idUml, DiagramEntity diagramEntity, String name) {
-		this.idUml = idUml;
+	public ClassEntity(String idUml, DiagramEntity diagramEntity, String name, VersionEntity version) {
+		super(idUml, name, version);
 		this.diagramEntity = diagramEntity;
-		this.name = name;
 		this.attributes = new ArrayList<AttributeEntity>();
 		this.operations = new ArrayList<OperationEntity>();
 	}
@@ -58,28 +54,12 @@ public class ClassEntity {
 		this.id = id;
 	}
 
-	public String getIdUml() {
-		return idUml;
-	}
-
-	public void setIdUml(String idUml) {
-		this.idUml = idUml;
-	}
-
 	public DiagramEntity getDiagramEntity() {
 		return diagramEntity;
 	}
 
 	public void setDiagramEntity(DiagramEntity diagramEntity) {
 		this.diagramEntity = diagramEntity;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public List<AttributeEntity> getAttributes() {
