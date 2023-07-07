@@ -45,13 +45,13 @@ public class VSCUMLModel {
 	private OperationParameterRepository parameterRepository;
 	@Autowired
 	private VersionRepository versionRepository;
-	
+
 	private VersionEntity version = null;
 
 	// Save a new model, read all elements and persist
 	public void versionControlUml(UMLModel newModel) {
 		DiagramEntity model = this.loadModelById(newModel.getId());
-		
+
 		this.version = new VersionEntity();
 		this.versionRepository.save(this.version);
 
@@ -82,7 +82,7 @@ public class VSCUMLModel {
 	public void saveChanges(DiagramEntity model, UMLModel newModel) {
 		this.addedElements(model, newModel);
 		this.removedElements(model, newModel);
-		this.alterElements(model, newModel);
+		this.changedElements(model, newModel);
 	}
 
 	public void addedElements(DiagramEntity model, UMLModel newModel) {
@@ -186,50 +186,65 @@ public class VSCUMLModel {
 		for (ClassEntity _class : removedClasses) {
 			_class.setVersion(this.version);
 			classRepository.softDelete(_class.getId());
-				System.out.println("removed class: " + _class.getName());
-			}
+			System.out.println("removed class: " + _class.getName());
+		}
 
 		for (AttributeEntity attribute : removedAttributes) {
 			attribute.setVersion(this.version);
 			attributeRepository.softDelete(attribute.getId());
-				System.out.println("removed attribute: " + attribute.getName());
-			}
+			System.out.println("removed attribute: " + attribute.getName());
+		}
 
 		for (OperationEntity operation : removedOperations) {
 			operation.setVersion(this.version);
 			operationRepository.softDelete(operation.getId());
-				System.out.println("removed operation: " + operation.getName());
-			}
+			System.out.println("removed operation: " + operation.getName());
+		}
 
 		for (OperationParameterEntity parameter : removedParameters) {
 			parameter.setVersion(this.version);
 			parameterRepository.softDelete(parameter.getId());
-				System.out.println("removed parameter: " + parameter.getName());
+			System.out.println("removed parameter: " + parameter.getName());
 		}
 	}
 
-	public void alterElements(DiagramEntity model, UMLModel newModel) {
-		
-		
+	public void changedElements(DiagramEntity model, UMLModel newModel) {
+		List<ClassEntity> changedClasses = new ArrayList<ClassEntity>();
+		List<AttributeEntity> changedAttributes = new ArrayList<AttributeEntity>();
+		List<OperationEntity> changedOperations = new ArrayList<OperationEntity>();
+		List<OperationParameterEntity> changedParameters = new ArrayList<OperationParameterEntity>();
+
 		for (ClassStructure _class : newModel.getClasses()) {
 			ClassEntity classExists = findClassById(model.getClasses(), _class.getId());
 			if (classExists != null) {
+				boolean hasChanges = false;
+
 				if (!classExists.getName().equals(_class.getName())) {
 					// change name
 					System.out.println("Class: " + classExists.getName() + " change name to: " + _class.getName());
+					hasChanges = true;
+					classExists.setName(_class.getName());
 				}
 //				if (!classExists().equals(_class.getSuperClasses())) {
 //					// change name
 //				}
+
+				if (hasChanges) {
+					changedClasses.add(classExists);
+				}
 			}
 
 			for (ClassAttribute attribute : _class.getAttributes()) {
 				AttributeEntity attributeExists = findAttributeById(classExists, attribute.getId());
 				if (attributeExists != null) {
+					boolean hasChanges = false;
+
 					if (!attributeExists.getName().equals(attribute.getName())) {
 						// change name
 						System.out.println(
 								"Attribute: " + attributeExists.getName() + " change name to: " + attribute.getName());
+						hasChanges = true;
+						attributeExists.setName(attribute.getName());
 					}
 //					if (!attributeExists.getIdType().toString().equals(attribute.getType())) {
 //						// change type
@@ -240,6 +255,12 @@ public class VSCUMLModel {
 						// change visibility
 						System.out.println("Attribute: " + attributeExists.getVisibility() + " change visibility to: "
 								+ attribute.getVisibility());
+						hasChanges = true;
+						attributeExists.setVisibility(attribute.getVisibility());
+					}
+
+					if (hasChanges) {
+						changedAttributes.add(attributeExists);
 					}
 				}
 			}
@@ -247,10 +268,14 @@ public class VSCUMLModel {
 			for (ClassOperation operation : _class.getOperations()) {
 				OperationEntity operationExists = findOperationById(classExists, operation.getId());
 				if (operationExists != null) {
+					boolean hasChanges = false;
+
 					if (!operationExists.getName().equals(operation.getName())) {
 						// change name
 						System.out.println(
 								"Operation: " + operationExists.getName() + " change name to: " + operation.getName());
+						hasChanges = true;
+						operationExists.setName(operation.getName());
 					}
 //					if (!operationExists.getIdType().toString().equals(operation.getType())) {
 //						// change type
@@ -261,16 +286,26 @@ public class VSCUMLModel {
 						// change visibility
 						System.out.println("Operation: " + operationExists.getVisibility() + " change visibility to: "
 								+ operation.getVisibility());
+						hasChanges = true;
+						operationExists.setVisibility(operation.getVisibility());
+					}
+
+					if (hasChanges) {
+						changedOperations.add(operationExists);
 					}
 				}
 
 				for (OperationParameter parameter : operation.getParameters()) {
 					OperationParameterEntity parameterExists = findParameterById(operationExists, parameter.getId());
 					if (parameterExists != null) {
+						boolean hasChanges = false;
+
 						if (!parameterExists.getName().equals(parameter.getName())) {
 							// change name
 							System.out.println("Operation parameter: " + parameterExists.getName() + " change name to: "
 									+ parameter.getName());
+							hasChanges = true;
+							parameterExists.setName(parameter.getName());
 						}
 //						if (!parameterExists.getIdType().toString().equals(parameter.getType())) {
 //							// change type
@@ -278,9 +313,34 @@ public class VSCUMLModel {
 //									+ parameter.getType());
 //						}
 
+						if (hasChanges) {
+							changedParameters.add(parameterExists);
+						}
 					}
 				}
 			}
+		}
+
+//		diagramRepository.save(model);
+
+		for (ClassEntity _class : changedClasses) {
+			_class.setVersion(this.version);
+			classRepository.save(_class);
+		}
+
+		for (AttributeEntity attribute : changedAttributes) {
+			attribute.setVersion(this.version);
+			attributeRepository.save(attribute);
+		}
+
+		for (OperationEntity operation : changedOperations) {
+			operation.setVersion(this.version);
+			operationRepository.save(operation);
+		}
+
+		for (OperationParameterEntity parameter : changedParameters) {
+			parameter.setVersion(this.version);
+			parameterRepository.save(parameter);
 		}
 	}
 
