@@ -10,12 +10,16 @@ import org.springframework.stereotype.Service;
 import com.vsc.demo.dao.AttributeEntity;
 import com.vsc.demo.dao.ClassEntity;
 import com.vsc.demo.dao.DiagramEntity;
+import com.vsc.demo.dao.HistoryChangeType;
+import com.vsc.demo.dao.HistoryChangeEntity;
 import com.vsc.demo.dao.OperationEntity;
 import com.vsc.demo.dao.OperationParameterEntity;
+import com.vsc.demo.dao.UMLElementEntity;
 import com.vsc.demo.dao.VersionEntity;
 import com.vsc.demo.repository.AttributeRepository;
 import com.vsc.demo.repository.ClassRepository;
 import com.vsc.demo.repository.DiagramRepository;
+import com.vsc.demo.repository.HistoryChangeRepository;
 import com.vsc.demo.repository.OperationParameterRepository;
 import com.vsc.demo.repository.OperationRepository;
 import com.vsc.demo.repository.VersionRepository;
@@ -26,10 +30,12 @@ import com.vsc.demo.uml.models._class.OperationParameter;
 import com.vsc.demo.uml.models._class.UMLElement;
 import com.vsc.demo.uml.models._class.UMLModel;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
+@Transactional
 @Component("VSCUMLModel")
 public class VSCUMLModel {
 
@@ -45,33 +51,77 @@ public class VSCUMLModel {
 	private OperationParameterRepository parameterRepository;
 	@Autowired
 	private VersionRepository versionRepository;
+	@Autowired
+	private HistoryChangeRepository historyChangeRepository;
+
+	List<HistoryChangeEntity> historyChanges = new ArrayList<HistoryChangeEntity>();
 
 	private VersionEntity version = null;
 
-	// Save a new model, read all elements and persist
 	public void versionControlUml(UMLModel newModel) {
-		DiagramEntity model = this.loadModelById(newModel.getId());
+		try {
+			DiagramEntity model = this.loadModelById(newModel.getId());
 
-		this.version = new VersionEntity();
-		this.versionRepository.save(this.version);
+			this.version = new VersionEntity();
+			this.versionRepository.save(this.version);
 
-		if (model == null) {
-			model = this.saveNewModel(newModel);
-			diagramRepository.save(model);
-			System.out.println("new model save: " + model.getName());
-		} else {
-			this.saveChanges(model, newModel);
+			if (model == null) {
+				model = this.saveNewModel(newModel);
+				this.diagramRepository.save(model);
+				System.out.println("new model save: " + model.getName());
+			} else {
+				this.saveChanges(model, newModel);
+			}
+
+			if (this.historyChanges.isEmpty()) {
+				this.versionRepository.delete(version);
+			} else {
+				this.historyChangeRepository.saveAll(this.historyChanges);
+			}
+		} catch (Exception e) {
+			System.out.println(e.toString());
 		}
 	}
 
 	public DiagramEntity saveNewModel(UMLModel model) {
 		DiagramEntity diagram = new DiagramEntity(model.getId(), model.getName(), model.getType(), this.version);
+		this.diagramRepository.save(diagram);
+		addChangeToHistory(diagram, diagram.getId(), diagram, HistoryChangeType.ADD, null, diagram.getName());
 
 		for (ClassStructure _class : model.getClasses()) {
-			diagram.addClass(classStrucutureToEntity(_class, diagram));
+			ClassEntity _classEntity = classStructureToEntity(_class, diagram);
+			classRepository.save(_classEntity);
+			diagram.addClass(_classEntity);
+			addChangeToHistory(diagram, _classEntity.getId(), _classEntity, HistoryChangeType.ADD, null,
+					_classEntity.getName());
+
+			for (AttributeEntity attribute : _classEntity.getAttributes()) {
+				this.attributeRepository.save(attribute);
+				addChangeToHistory(diagram, attribute.getId(), attribute, HistoryChangeType.ADD, null,
+						attribute.getName());
+			}
+
+			for (OperationEntity operation : _classEntity.getOperations()) {
+				this.operationRepository.save(operation);
+				addChangeToHistory(diagram, operation.getId(), operation, HistoryChangeType.ADD, null,
+						operation.getName());
+
+				for (OperationParameterEntity parameter : operation.getParameters()) {
+					this.parameterRepository.save(parameter);
+					addChangeToHistory(diagram, parameter.getId(), parameter, HistoryChangeType.ADD, null,
+							parameter.getName());
+				}
+			}
 		}
 
 		return diagram;
+	}
+
+	public void addChangeToHistory(DiagramEntity diagram, Long entityId, UMLElementEntity umlElement,
+			HistoryChangeType changeType, String property, String value) {
+		HistoryChangeEntity newClass = new HistoryChangeEntity(diagram, umlElement.getClass().toString(), entityId,
+				changeType, property, value, this.version);
+		this.historyChanges.add(newClass);
 	}
 
 	public DiagramEntity loadModelById(String id) {
@@ -93,29 +143,34 @@ public class VSCUMLModel {
 
 		for (ClassStructure _class : newModel.getClasses()) {
 			ClassEntity classExists = findClassById(model.getClasses(), _class.getId());
+			ClassEntity newClass = null;
 			if (classExists == null) {
-				addClasses.add(classStrucutureToEntity(_class, model));
-				continue;
+				newClass = classStructureToEntity(_class, model);
+				addClasses.add(newClass);
+//				continue;
 			}
 
 			for (ClassAttribute attribute : _class.getAttributes()) {
 				AttributeEntity attributeExists = findAttributeById(classExists, attribute.getId());
 				if (attributeExists == null) {
-					addAttributes.add(classAttributeToEntity(attribute, classExists));
+					addAttributes.add(classAttributeToEntity(attribute, classExists != null ? classExists : newClass));
 				}
 			}
 
 			for (ClassOperation operation : _class.getOperations()) {
 				OperationEntity operationExists = findOperationById(classExists, operation.getId());
+				OperationEntity newOperation = null;
 				if (operationExists == null) {
-					addOperations.add(classOperationToEntity(operation, classExists));
-					continue;
+					newOperation = classOperationToEntity(operation, classExists != null ? classExists : newClass);
+					addOperations.add(newOperation);
+//					continue;
 				}
 
 				for (OperationParameter parameter : operation.getParameters()) {
 					OperationParameterEntity parameterExists = findParameterById(operationExists, parameter.getId());
 					if (parameterExists == null) {
-						addParameters.add(opParameterToEntity(parameter, operationExists));
+						addParameters.add(opParameterToEntity(parameter,
+								operationExists != null ? operationExists : newOperation));
 					}
 				}
 			}
@@ -123,21 +178,25 @@ public class VSCUMLModel {
 
 		for (ClassEntity _class : addClasses) {
 			classRepository.save(_class);
+			addChangeToHistory(model, _class.getId(), _class, HistoryChangeType.ADD, null, _class.getName());
 			System.out.println("new class: " + _class.getName());
 		}
 
 		for (AttributeEntity attribute : addAttributes) {
 			attributeRepository.save(attribute);
+			addChangeToHistory(model, attribute.getId(), attribute, HistoryChangeType.ADD, null, attribute.getName());
 			System.out.println("new attribute: " + attribute.getName());
 		}
 
 		for (OperationEntity operation : addOperations) {
 			operationRepository.save(operation);
+			addChangeToHistory(model, operation.getId(), operation, HistoryChangeType.ADD, null, operation.getName());
 			System.out.println("new operation: " + operation.getName());
 		}
 
 		for (OperationParameterEntity parameter : addParameters) {
 			parameterRepository.save(parameter);
+			addChangeToHistory(model, parameter.getId(), parameter, HistoryChangeType.ADD, null, parameter.getName());
 			System.out.println("new parameter: " + parameter.getName());
 		}
 	}
@@ -186,24 +245,31 @@ public class VSCUMLModel {
 		for (ClassEntity _class : removedClasses) {
 			_class.setVersion(this.version);
 			classRepository.softDelete(_class.getId());
+			addChangeToHistory(model, _class.getId(), _class, HistoryChangeType.REMOVE, null, _class.getName());
 			System.out.println("removed class: " + _class.getName());
 		}
 
 		for (AttributeEntity attribute : removedAttributes) {
 			attribute.setVersion(this.version);
 			attributeRepository.softDelete(attribute.getId());
+			addChangeToHistory(model, attribute.getId(), attribute, HistoryChangeType.REMOVE, null,
+					attribute.getName());
 			System.out.println("removed attribute: " + attribute.getName());
 		}
 
 		for (OperationEntity operation : removedOperations) {
 			operation.setVersion(this.version);
 			operationRepository.softDelete(operation.getId());
+			addChangeToHistory(model, operation.getId(), operation, HistoryChangeType.REMOVE, null,
+					operation.getName());
 			System.out.println("removed operation: " + operation.getName());
 		}
 
 		for (OperationParameterEntity parameter : removedParameters) {
 			parameter.setVersion(this.version);
 			parameterRepository.softDelete(parameter.getId());
+			addChangeToHistory(model, parameter.getId(), parameter, HistoryChangeType.REMOVE, null,
+					parameter.getName());
 			System.out.println("removed parameter: " + parameter.getName());
 		}
 	}
@@ -245,6 +311,8 @@ public class VSCUMLModel {
 								"Attribute: " + attributeExists.getName() + " change name to: " + attribute.getName());
 						hasChanges = true;
 						attributeExists.setName(attribute.getName());
+						addChangeToHistory(model, attributeExists.getId(), attributeExists, HistoryChangeType.CHANGE,
+								"name", attributeExists.getName());
 					}
 //					if (!attributeExists.getIdType().toString().equals(attribute.getType())) {
 //						// change type
@@ -257,6 +325,8 @@ public class VSCUMLModel {
 								+ attribute.getVisibility());
 						hasChanges = true;
 						attributeExists.setVisibility(attribute.getVisibility());
+						addChangeToHistory(model, attributeExists.getId(), attributeExists, HistoryChangeType.CHANGE,
+								"visibility", attributeExists.getVisibility());
 					}
 
 					if (hasChanges) {
@@ -276,6 +346,8 @@ public class VSCUMLModel {
 								"Operation: " + operationExists.getName() + " change name to: " + operation.getName());
 						hasChanges = true;
 						operationExists.setName(operation.getName());
+						addChangeToHistory(model, operationExists.getId(), operationExists, HistoryChangeType.CHANGE,
+								"name", operationExists.getName());
 					}
 //					if (!operationExists.getIdType().toString().equals(operation.getType())) {
 //						// change type
@@ -288,6 +360,8 @@ public class VSCUMLModel {
 								+ operation.getVisibility());
 						hasChanges = true;
 						operationExists.setVisibility(operation.getVisibility());
+						addChangeToHistory(model, operationExists.getId(), operationExists, HistoryChangeType.CHANGE,
+								"visibility", operationExists.getVisibility());
 					}
 
 					if (hasChanges) {
@@ -306,6 +380,8 @@ public class VSCUMLModel {
 									+ parameter.getName());
 							hasChanges = true;
 							parameterExists.setName(parameter.getName());
+							addChangeToHistory(model, parameterExists.getId(), parameterExists,
+									HistoryChangeType.CHANGE, "name", parameterExists.getName());
 						}
 //						if (!parameterExists.getIdType().toString().equals(parameter.getType())) {
 //							// change type
@@ -379,6 +455,9 @@ public class VSCUMLModel {
 
 	public static ClassEntity findClassById(List<ClassEntity> classes, String id) {
 		ClassEntity classFind = null;
+		if (classes == null || classes.isEmpty()) {
+			return classFind;
+		}
 
 		for (ClassEntity _class : classes) {
 			if (_class.getIdUml().equals(id)) {
@@ -392,6 +471,9 @@ public class VSCUMLModel {
 
 	public static AttributeEntity findAttributeById(ClassEntity _class, String attributeId) {
 		AttributeEntity attributeFind = null;
+		if (_class == null) {
+			return attributeFind;
+		}
 
 		for (AttributeEntity attribute : _class.getAttributes()) {
 			if (attribute.getIdUml().equals(attributeId)) {
@@ -405,6 +487,9 @@ public class VSCUMLModel {
 
 	public static OperationEntity findOperationById(ClassEntity _class, String operationId) {
 		OperationEntity operationFind = null;
+		if (_class == null) {
+			return operationFind;
+		}
 
 		for (OperationEntity operation : _class.getOperations()) {
 			if (operation.getIdUml().equals(operationId)) {
@@ -418,6 +503,9 @@ public class VSCUMLModel {
 
 	public static OperationParameterEntity findParameterById(OperationEntity operation, String parameterId) {
 		OperationParameterEntity parameterFind = null;
+		if (operation == null) {
+			return parameterFind;
+		}
 
 		for (OperationParameterEntity parameter : operation.getParameters()) {
 			if (parameter.getIdUml().equals(parameterId)) {
@@ -429,7 +517,7 @@ public class VSCUMLModel {
 		return parameterFind;
 	}
 
-	public ClassEntity classStrucutureToEntity(ClassStructure _class, DiagramEntity diagram) {
+	public ClassEntity classStructureToEntity(ClassStructure _class, DiagramEntity diagram) {
 		ClassEntity classEntity = new ClassEntity(_class.getId(), diagram, _class.getName(), this.version);
 
 		for (ClassAttribute attribute : _class.getAttributes()) {
