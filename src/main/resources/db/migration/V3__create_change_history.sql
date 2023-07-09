@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS dev.history_change (
   id_version bigint NOT NULL,
   entity_type VARCHAR(45) NULL,
   id_entity bigint NOT NULL,
-  operation VARCHAR(45) NOT NULL,
+  change_type smallint NOT NULL,
   property VARCHAR(45) NULL,
   value VARCHAR(45) NULL,
   create_at timestamp NULL,
