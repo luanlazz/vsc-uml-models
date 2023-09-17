@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.common.util.WrappedException;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -86,39 +87,6 @@ public class ModelLoader {
 		return RESOURCE_SET;
 	}
 
-	private Resource registerModel(File file) throws IOException {
-
-		final char PKG_SEPARATOR = '.';
-		final char DIR_SEPARATOR = '/';
-
-		String scannedPackage = "org.eclipse.uml2.uml";
-		String scannedPath = scannedPackage.replace(PKG_SEPARATOR, DIR_SEPARATOR);
-		URL url = getClass().getClassLoader().getResource(scannedPath);
-		if (url != null) {
-			String pathToJar;
-			if (url.getPath().contains("file:")) {
-				pathToJar = url.getPath().substring(5, url.getPath().indexOf(".jar") + 4);
-			} else {
-				pathToJar = url.getPath().substring(0, url.getPath().indexOf(".jar") + 4);
-			}
-
-			URIConverter.URI_MAP.put(URI.createURI("platform:/plugin/org.eclipse.uml2.uml/"),
-					URI.createURI("jar:file:" + pathToJar + "!/"));
-
-		}
-
-		Resource resource;
-
-		Map<String, Object> options = new HashMap<>();
-		options.put(XMLResource.OPTION_EXTENDED_META_DATA, Boolean.TRUE);
-		options.put(XMLResource.OPTION_RECORD_UNKNOWN_FEATURE, Boolean.TRUE);
-		options.put(XMLResource.OPTION_ENCODING, "UTF-8");
-
-		resource = getResourceSet().createResource(URI.createFileURI(file.getCanonicalPath()));
-		resource.load(options);
-		return resource;
-	}
-
 	public Package loadModel(File file) throws IOException {
 		if (file.getName().endsWith("uml")) {
 			return loadUMLModel(file);
@@ -128,14 +96,22 @@ public class ModelLoader {
 		return null;
 	}
 
+	public Package loadModel(String umlContent) throws IOException {
+		return loadUMLModel(umlContent);
+	}
+
+	private Package loadUMLModel(String umlContent) throws IOException {
+		Resource resource = registerModel(umlContent);
+		return loadPackage(resource);
+	}
+
 	private Package loadUMLModel(File file) throws IOException {
 		Resource resource = registerModel(file);
+		return loadPackage(resource);
+	}
 
+	private Package loadPackage(Resource resource) {
 		Package _package;
-
-//        for (EObject ojEObject : resource.getContents()) {
-//            System.out.println(ojEObject.getClass());
-//        }
 
 		_package = (Model) EcoreUtil.getObjectByType(resource.getContents(), UMLPackage.Literals.MODEL);
 
@@ -157,8 +133,67 @@ public class ModelLoader {
 
 			}
 		}
-		return _package;
 
+		return _package;
+	}
+
+	public Resource registerModel(File file) throws IOException {
+		registerLib();
+
+		Map<String, Object> options = getOptionsResource();
+
+		Resource resource = getResourceSet().createResource(URI.createFileURI(file.getCanonicalPath()));
+		resource.load(options);
+		return resource;
+	}
+
+	public Resource registerModel(String umlContent) throws IOException {
+		registerLib();
+
+		org.eclipse.uml2.uml.UMLPackage.eINSTANCE.eClass();
+
+		Map<String, Object> options = getOptionsResource();
+
+		Resource resource = UMLResource.Factory.INSTANCE.createResource(URI.createURI("temp.uml"));
+		resource.load(new java.io.ByteArrayInputStream(umlContent.getBytes()), options);
+		return resource;
+	}
+
+	private static Map<String, Object> getOptionsResource() {
+		Map<String, Object> options = new HashMap<>();
+		options.put(XMLResource.OPTION_EXTENDED_META_DATA, Boolean.TRUE);
+		options.put(XMLResource.OPTION_RECORD_UNKNOWN_FEATURE, Boolean.TRUE);
+		options.put(XMLResource.OPTION_ENCODING, "UTF-8");
+		return options;
+	}
+
+	public static void save(Package package_, URI uri) {
+		Resource resource = RESOURCE_SET.createResource(uri);
+		resource.getContents().add(package_);
+
+		try {
+			resource.save(null);
+			System.out.println("Done.");
+		} catch (IOException ioe) {
+			System.out.println(ioe.getMessage());
+		}
+	}
+
+	public static Package load(URI uri) {
+		Package package_ = null;
+
+		try {
+			// Load the requested resource
+			Resource resource = RESOURCE_SET.getResource(uri, true);
+
+			// Get the first (should be only) package from it
+			package_ = (Package) EcoreUtil.getObjectByType(resource.getContents(), UMLPackage.Literals.PACKAGE);
+		} catch (WrappedException we) {
+			System.out.println(we.getMessage());
+			System.exit(1);
+		}
+
+		return package_;
 	}
 
 	private Package loadEcoreModel(File file) throws IOException {
@@ -190,5 +225,25 @@ public class ModelLoader {
 				uri.appendSegment("metamodels").appendSegment(""));
 		URIConverter.URI_MAP.put(URI.createURI(UMLResource.PROFILES_PATHMAP),
 				uri.appendSegment("profiles").appendSegment(""));
+	}
+
+	private void registerLib() {
+		final char PKG_SEPARATOR = '.';
+		final char DIR_SEPARATOR = '/';
+
+		String scannedPackage = "org.eclipse.uml2.uml";
+		String scannedPath = scannedPackage.replace(PKG_SEPARATOR, DIR_SEPARATOR);
+		URL url = getClass().getClassLoader().getResource(scannedPath);
+		if (url != null) {
+			String pathToJar;
+			if (url.getPath().contains("file:")) {
+				pathToJar = url.getPath().substring(5, url.getPath().indexOf(".jar") + 4);
+			} else {
+				pathToJar = url.getPath().substring(0, url.getPath().indexOf(".jar") + 4);
+			}
+
+			URIConverter.URI_MAP.put(URI.createURI("platform:/plugin/org.eclipse.uml2.uml/"),
+					URI.createURI("jar:file:" + pathToJar + "!/"));
+		}
 	}
 }

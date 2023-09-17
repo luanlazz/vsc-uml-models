@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 import com.vsc.demo.dao.AttributeEntity;
 import com.vsc.demo.dao.ClassEntity;
 import com.vsc.demo.dao.DiagramEntity;
-import com.vsc.demo.dao.HistoryChangeType;
 import com.vsc.demo.dao.HistoryChangeEntity;
+import com.vsc.demo.dao.HistoryChangeType;
 import com.vsc.demo.dao.OperationEntity;
 import com.vsc.demo.dao.OperationParameterEntity;
 import com.vsc.demo.dao.UMLElementEntity;
@@ -54,22 +54,21 @@ public class VSCUMLModel {
 	@Autowired
 	private HistoryChangeRepository historyChangeRepository;
 
-	List<HistoryChangeEntity> historyChanges = new ArrayList<HistoryChangeEntity>();
+	ArrayList<HistoryChangeEntity> historyChanges = new ArrayList<HistoryChangeEntity>();
 
 	private VersionEntity version = null;
 
-	public void versionControlUml(UMLModel newModel) {
+	public List<HistoryChangeEntity> versionControlUml(UMLModel newModel, boolean isNewModel) {
 		try {
-			DiagramEntity model = this.loadModelById(newModel.getId());
-
 			this.version = new VersionEntity();
 			this.versionRepository.save(this.version);
-
-			if (model == null) {
-				model = this.saveNewModel(newModel);
+			
+			if (isNewModel) {
+				DiagramEntity model = this.saveNewModel(newModel);
 				this.diagramRepository.save(model);
-				System.out.println("new model save: " + model.getName());
+				System.out.println("Init new model: " + model.getName());
 			} else {
+				DiagramEntity model = this.loadModelById(newModel.getId());
 				this.saveChanges(model, newModel);
 			}
 
@@ -81,6 +80,8 @@ public class VSCUMLModel {
 		} catch (Exception e) {
 			System.out.println(e.toString());
 		}
+
+		return this.historyChanges;
 	}
 
 	public DiagramEntity saveNewModel(UMLModel model) {
@@ -119,7 +120,7 @@ public class VSCUMLModel {
 
 	public void addChangeToHistory(DiagramEntity diagram, Long entityId, UMLElementEntity umlElement,
 			HistoryChangeType changeType, String property, String value) {
-		HistoryChangeEntity newClass = new HistoryChangeEntity(diagram, umlElement.getClass().toString(), entityId,
+		HistoryChangeEntity newClass = new HistoryChangeEntity(diagram, umlElement.getClass().getSimpleName(), entityId,
 				changeType, property, value, this.version);
 		this.historyChanges.add(newClass);
 	}

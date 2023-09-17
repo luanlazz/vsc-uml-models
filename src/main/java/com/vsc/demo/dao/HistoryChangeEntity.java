@@ -83,6 +83,14 @@ public class HistoryChangeEntity {
 		this.diagramEntity = diagramEntity;
 	}
 
+	public VersionEntity getVersion() {
+		return version;
+	}
+
+	public void setVersion(VersionEntity version) {
+		this.version = version;
+	}
+	
 	public String getEntityType() {
 		return entityType;
 	}
@@ -99,7 +107,7 @@ public class HistoryChangeEntity {
 		this.idEntity = idEntity;
 	}
 
-	public HistoryChangeType getOperation() {
+	public HistoryChangeType getChangeType() {
 		return changeType;
 	}
 
