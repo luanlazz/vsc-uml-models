@@ -60,6 +60,8 @@ public class VSCUMLModel {
 
 	public List<HistoryChangeEntity> versionControlUml(UMLModel newModel, boolean isNewModel) {
 		try {
+			this.historyChanges = new ArrayList<HistoryChangeEntity>();		
+			
 			this.version = new VersionEntity();
 			this.versionRepository.save(this.version);
 			
